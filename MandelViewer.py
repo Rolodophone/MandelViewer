@@ -1,14 +1,24 @@
+import math
 
+LOCATIONS = {
+	"default": (-2, -1.25, 2.5, 2.5),
+	"tendril_bulb": (0.3027640, -0.0234289, 0.0000418, 0.0000418),
+	"minibrot": (0.305458, -0.023282, 0.00050, 0.00045),
+	"spirals": (0.305959, -0.022732, 0.000012, 0.000012)
+}
+LOCATION_NAME = "spirals"
 
-TOP_LEFT_RE = -2
-TOP_LEFT_IM = -1
-NUM_ROWS = 400  # height
-NUM_COLUMNS = 500  # width
-BOTTOM_RIGHT_RE = 0.5
-BOTTOM_RIGHT_IM = 1
+LOCATION = LOCATIONS[LOCATION_NAME]
+TOP_LEFT_RE = LOCATION[0]
+TOP_LEFT_IM = LOCATION[1]
+BOTTOM_RIGHT_RE = LOCATION[0] + LOCATION[2]
+BOTTOM_RIGHT_IM = LOCATION[1] + LOCATION[3]
+NUM_ROWS = 200  # output height
+NUM_COLUMNS = round(NUM_ROWS * (LOCATION[2] / LOCATION[3]))  # output width
+NUM_COLOURS = 9
 INTERACTIVE = False
 MAX_ITERATIONS = 1000
-CONVERGENCE_TOLERANCE = 0.00001
+CONVERGENCE_TOLERANCE = 0
 
 SQUARE_WIDTH = (BOTTOM_RIGHT_RE - TOP_LEFT_RE) / (NUM_COLUMNS - 1)
 SQUARE_HEIGHT = (BOTTOM_RIGHT_IM - TOP_LEFT_IM) / (NUM_ROWS - 1)
@@ -62,15 +72,15 @@ def check_point(re, im):
 
 		# return false if z diverges
 		if not -4 < point.re < 4 or not -4 < point.im < 4:
-			return False
+			return i
 
 		# return true if z converges
 		if -CONVERGENCE_TOLERANCE < point.re - prev_point.re < CONVERGENCE_TOLERANCE and \
 			-CONVERGENCE_TOLERANCE < point.im - prev_point.im < CONVERGENCE_TOLERANCE:
-			return True
+			return -1
 
 	# return true if z fails to diverge after many iterations
-	return True
+	return -1
 
 
 def output(row, output_file=None):
@@ -81,17 +91,19 @@ def output(row, output_file=None):
 		output_file.write(row + "\n")
 
 
-def repr_pixel(inside_set):
+def repr_pixel(iterations):
 	if INTERACTIVE:
-		if inside_set:
+		if iterations == -1:
 			return "▉"
 		else:
 			return " "
 	else:
-		if inside_set:
-			return "1 "
+		if iterations == -1:
+			return "0 0 0 "
 		else:
-			return "0 "
+			colour_value = NUM_COLOURS - round((NUM_COLOURS / math.sqrt(MAX_ITERATIONS)) * math.sqrt(iterations))
+			return f"{NUM_COLOURS} {colour_value} {colour_value} "
+
 
 
 def main():
@@ -100,8 +112,8 @@ def main():
 	if INTERACTIVE:
 		output_file = None
 	else:
-		output_file = open(f"output_{NUM_COLUMNS}x{NUM_ROWS}.pbm", "w")
-		output_file.write(f"P1\n{NUM_COLUMNS} {NUM_ROWS}\n")
+		output_file = open(f"output_{LOCATION_NAME}_{NUM_COLUMNS}x{NUM_ROWS}.ppm", "w")
+		output_file.write(f"P3\n{NUM_COLUMNS} {NUM_ROWS}\n{NUM_COLOURS}\n")
 
 	y = TOP_LEFT_IM
 	row_i = 0
