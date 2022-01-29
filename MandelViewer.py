@@ -4,7 +4,7 @@ LOCATIONS = {
 	"default": (-2, -1.25, 2.5, 2.5),
 	"tendril_bulb": (0.3027640, -0.0234289, 0.0000418, 0.0000418),
 	"minibrot": (0.305458, -0.023282, 0.00050, 0.00045),
-	"spirals": (0.305959, -0.022732, 0.000012, 0.000012)
+	"spirals": (0.305959, -0.022734, 0.000012, 0.000012)
 }
 LOCATION_NAME = "spirals"
 
@@ -13,12 +13,11 @@ TOP_LEFT_RE = LOCATION[0]
 TOP_LEFT_IM = LOCATION[1]
 BOTTOM_RIGHT_RE = LOCATION[0] + LOCATION[2]
 BOTTOM_RIGHT_IM = LOCATION[1] + LOCATION[3]
-NUM_ROWS = 200  # output height
+NUM_ROWS = 2000  # output height
 NUM_COLUMNS = round(NUM_ROWS * (LOCATION[2] / LOCATION[3]))  # output width
-NUM_COLOURS = 9
+NUM_COLOURS = 255
 INTERACTIVE = False
 MAX_ITERATIONS = 1000
-CONVERGENCE_TOLERANCE = 0
 
 SQUARE_WIDTH = (BOTTOM_RIGHT_RE - TOP_LEFT_RE) / (NUM_COLUMNS - 1)
 SQUARE_HEIGHT = (BOTTOM_RIGHT_IM - TOP_LEFT_IM) / (NUM_ROWS - 1)
@@ -51,12 +50,11 @@ class ComplexNumber:
 
 
 initial_point = ComplexNumber(0, 0)  # reuse these objects so we aren't creating new objects each time
-prev_point = ComplexNumber(0, 0)
 point = ComplexNumber(0, 0)
 
 
 def check_point(re, im):
-	global initial_point, prev_point, point
+	global initial_point, point
 
 	initial_point.re = re
 	initial_point.im = im
@@ -64,20 +62,14 @@ def check_point(re, im):
 	point.im = im
 
 	for i in range(MAX_ITERATIONS):
-		prev_point.set(point)
 		point.squ()
 		point.add(initial_point)
 
 		# print(point)
 
 		# return false if z diverges
-		if not -4 < point.re < 4 or not -4 < point.im < 4:
+		if not -2 < point.re < 2 or not -2 < point.im < 2:
 			return i
-
-		# return true if z converges
-		if -CONVERGENCE_TOLERANCE < point.re - prev_point.re < CONVERGENCE_TOLERANCE and \
-			-CONVERGENCE_TOLERANCE < point.im - prev_point.im < CONVERGENCE_TOLERANCE:
-			return -1
 
 	# return true if z fails to diverge after many iterations
 	return -1
@@ -127,7 +119,8 @@ def main():
 		while column_i < NUM_COLUMNS:
 			# print(f"{x}+{y}i")
 
-			row_str += repr_pixel(check_point(x, y))
+			iterations = check_point(x, y)
+			row_str += repr_pixel(iterations)
 
 			x += SQUARE_WIDTH
 			column_i += 1
